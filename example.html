@@ -3,13 +3,49 @@
 
   </head>
   <body>
+    <div id="senario">Kill the Goblin</div>
+    <div id="endTurn"></div>
     <div id="gameBoard"></div>
+    <div id="gamepad"></div>
+    <div id="characters"></div>
+    <div id="legend">
+      <table>
+        <tr>
+          <td>Start</td><td style="height:20px;width:20px;background:blue;"></td>
+        </tr>
+        <tr>
+          <td>Ground</td><td style="height:20px;width:20px;background:green;"></td>
+        </tr>
+        <tr>
+          <td>Wall</td><td style="height:20px;width:20px;background:black;"></td>
+        </tr>
+        <tr>
+          <td>Door</td><td style="height:20px;width:20px;background:gray;"></td>
+        </tr>
+        <tr>
+          <td>Hidden</td><td style="height:20px;width:20px;background:white;"></td>
+        </tr>
+        <tr></tr>
+      </table>
+    </div>
+    <div id="msgBox"></div>
     <script src="game.js"></script>
     <script>
-      gameJS.createBoard(10,10);
-
+      //gameJS.createBoard(10,10);
+      gameJS.createBoard(10,10,["blue,home","green,none","green,none","black,blocked","green,none","green,none","green,none","green,none","green,none","green,none","green,none","green,none","green,none","green,none","green,none","green,none","green,none","green,none","green,none","green,none","green,none","green,none","green,none","green,none","green,none","green,none","green,none","green,none","green,none","green,none","green,none","green,none","black,blocked","black,blocked","green,none","green,none","green,none","green,none","green,none","green,none","green,none","green,none","black,blocked","black,blocked","green,none","green,none","green,none","green,none","green,none","green,none","green,none","green,none","green,none","green,none","green,none","green,none","green,none","green,none","green,none","green,none","green,none","green,none","green,none","green,none","green,none","green,none","black,blocked","black,blocked","black,blocked","black,blocked","green,none","green,none","green,none","green,none","green,none","green,none","gray,door","white,hidden","white,hidden","white,hidden","green,none","green,none","green,none","green,none","green,none","green,none","black,blocked","white,hidden","white,hidden","white,hidden","black,blocked","green,none","green,none","green,none","green,none","green,none","black,blocked","white,hidden","white,hidden","white,hidden"]);
+      var goblin1 = Object.create(goblin);
+      goblin1.name = "Goblin1";
+      goblin1.locY = 6;
+      goblin1.locX = 4;
 
       //document.getElementById('gameBoard').innerHTML = goblin2.name;
+      //Enter characters
+      var steve = new gameJS.character("Steve",1,1,0,"studdedleather","scimitar",30,"fighter.png",14,12,12,10,9,12,"fighter",1);
+      gameJS.characters = [goblin1,steve];
+      //console.log(gameJS.characters);
+
+      gameJS.startGame(gameJS.characters);
+      console.log(gameJS.characters);
     </script>
   </body>
 </html>
