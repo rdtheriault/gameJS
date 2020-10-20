@@ -10,6 +10,7 @@ var gameJS = {
   turnAttks: 0,//holds current character attacks for turn
   turnActions: 0,//hold number of actions taken
   turnSpecial: 0,
+  turnDeath: [],//track those who die that turn
 
   //create game board
   createBoard : function(h,w, boardOptions1){
@@ -35,6 +36,9 @@ var gameJS = {
         if (boardOptions1){//know that there are options
           var parts = boardOptions1[opts].split(",");
           //colEl.classList.add(parts[1]);
+          if (parts[2] == "d1"){
+            colEl.innerHTML = '<img src="pics/keyHole.png">';
+          }
           colEl.className += " "+parts[1];
           colEl.style.background = parts[0];
           opts++;
@@ -48,6 +52,10 @@ var gameJS = {
       }
       boardEl.appendChild(rowEl);
     }
+
+  },
+  //do all the stuff needed to set up each board piece
+  checkBoardOptions: function(parts, el){
 
   },
   //
@@ -76,6 +84,14 @@ var gameJS = {
   showArrows: function(){
     document.getElementById("gamePad").style.display = "block";
   },
+  updateMsg: function(msg){
+    document.getElementById("msgBoxInner").innerHTML += (msg+"<br>");
+    document.getElementById("statPlayer").innerHTML = gameJS.characters[gameJS.turn].name;
+    document.getElementById("statMov").innerHTML = gameJS.turnMov;
+    document.getElementById("statAttk").innerHTML = gameJS.turnAttks;
+    document.getElementById("statAct").innerHTML = gameJS.turnActions;
+    document.getElementById("statHP").innerHTML = gameJS.characters[gameJS.turn].hp;
+  },
 
 
   //player monster npc stats
@@ -83,7 +99,7 @@ var gameJS = {
     this.name = name1;
     this.locY = locY1;
     this.locX = locX1;
-    this.hp = hp1;
+    this.hp = hp1;//get based on class and level
     this.armorClass = gameJS.getArmorClass(armor1,dex1);
     this.armor = armor1;
     this.attk = gameJS.getWeaponDamage(weapon1);
@@ -107,7 +123,8 @@ var gameJS = {
     this.special = 1;//may change on class and level
     this.ai = ai1;
     this.prof = 2;//change with level
-    this.dead = 0
+    this.dead = 0;
+    this.items = [];
   },
 
   //classes "special,times,special2,times,hp,statbonus"
@@ -149,6 +166,7 @@ var gameJS = {
     gameJS.turnAttks = gameJS.characters[gameJS.turn].attks;
     gameJS.turnSpecial = gameJS.characters[gameJS.turn].special;
     gameJS.turnActions = 1;
+    gameJS.updateMsg("New Turn -> Player = "+gameJS.characters[gameJS.turn].name);
     if (gameJS.characters[gameJS.turn].charClass != "monster"){//player
       gameJS.showArrows();
 
@@ -171,7 +189,7 @@ var gameJS = {
     if (option == "btn"){
       gameJS.hideArrows();
     }
-
+    gameJS.deleteDead();
     gameJS.nextTurn();
   },
   move: function(dir1){
@@ -209,16 +227,19 @@ var gameJS = {
       console.log("Checking move of "+gameJS.characters[gameJS.turn].name+" to location "+newX+","+newY)
       if (gameJS.checkBlock(newX, newY)){
         gameJS.turnMov = gameJS.turnMov - move;
-        console.log("Player movement is "+gameJS.turnMov);
+        console.log(gameJS.characters[gameJS.turn].name+" movement is "+gameJS.turnMov);
       }
     }
     else if (move == 0){
-      console.log("Player is out of movement");
+      console.log(gameJS.characters[gameJS.turn].name+" is out of movement");
+      gameJS.updateMsg(gameJS.characters[gameJS.turn].name+" is out of movement");
     }
   },
+
   checkBlock: function(dirX, dirY){
     if (dirX == "0" || dirY == "0" || dirX > gameJS.boardH || dirY > gameJS.boardW){
       console.log("Out of bounds");
+      gameJS.updateMsg("Out of bounds");
       return false;
     }
     else{
@@ -231,7 +252,8 @@ var gameJS = {
         if (gameJS.characters[i].name != gameJS.characters[gameJS.turn].name && (gameJS.characters[i].locX == dirX && gameJS.characters[i].locY == dirY)){//if not smae charcter and enemy there
           //if no attacks
           if (gameJS.turnAttks < 1){
-            console.log("Player has no Attacks left");
+            console.log(gameJS.characters[gameJS.turn].name+" has no Attacks left");
+            gameJS.updateMsg(gameJS.characters[gameJS.turn].name+" has no Attacks left");
           }
           else{
             //minus attack
@@ -242,11 +264,13 @@ var gameJS = {
             var dmg = gameJS.playerAttack(gameJS.characters[gameJS.turn].attk,hit,gameJS.characters[gameJS.turn].attkBonus,attkPlus, gameJS.characters[i].armorClass);
             if (dmg == 0){
               console.log("Missed "+gameJS.characters[i].name);
+              gameJS.updateMsg("Missed "+gameJS.characters[i].name);
             }
             else if (gameJS.characters[i].hp - dmg < 1){
               gameJS.characters[i].hp = gameJS.characters[i].hp - dmg;
               gameJS.death(gameJS.characters[i]);
               console.log("Death of "+gameJS.characters[i].name);
+              gameJS.updateMsg("Death of "+gameJS.characters[i].name);
             }
             else{
               gameJS.characters[i].hp = gameJS.characters[i].hp - dmg;
@@ -267,10 +291,12 @@ var gameJS = {
       }
     }
   },
+
   removePic: function(x,y){//use to clear old location or dead character char
     var oldLoc = "row"+y+"_col"+x;
     document.getElementById(oldLoc).innerHTML = "";
   },
+
   rollInitiative: function(characters){//roll for all characters then reset their order
     for (var i = 0; i < characters.length;i++){
       var dexMod = gameJS.getProfBonus(characters[i].dex);
@@ -279,19 +305,40 @@ var gameJS = {
     characters.sort((a,b) => (a.initiative < b.initiative) ? 1 : ((b.initiative < a.initiative) ? -1 : 0));
     gameJS.characters =  characters;
   },
+
   death: function(character){//if character is < 0 they die remove from list and board
     character.dead = 1;
     //remove from board
     gameJS.removePic(character.locX,character.locY);
     character.locX = 0;
     character.locy = 0;
+    if (character.charClass != "monster"){//will need mod for npc and or multiplayer
+      document.body.innerHTML = '<h1 style="text-align:center;">You done died</h1><h2 style="text-align:center;">Please refresh the page to try again</h2>';
+    }
+    gameJS.turnDeath.push(character);
+    console.log(gameJS.turnDeath);
   },
+  deleteDead: function(){
+    if (gameJS.turnDeath.length >= 1){
+      for (var i = 0; i < gameJS.turnDeath.length;i++){
+        for (var j = 0; j < gameJS.characters.length;j++){
+          if (gameJS.turnDeath[i].name == gameJS.characters[j].name){
+            gameJS.characters.splice(j,1);
+          }
+        }
+      }
+    }
+    //console.log(gameJS.characters);//who is left
+    gameJS.turnDeath = [];
+  },
+
   placeCharacter: function(character){
     var x = character.locX;
     var y = character.locY;
-    var location = "row"+y+"_col"+x;//ad later (if not hidden)
+    var location = "row"+y+"_col"+x;//add later (if not hidden)
     document.getElementById(location).innerHTML = '<img src="pics/'+character.img+'">';
   },
+
   startGame: function(characters){
     for (var i = 0; i < characters.length;i++){
       gameJS.placeCharacter(characters[i]);
@@ -299,11 +346,7 @@ var gameJS = {
     gameJS.rollInitiative(characters);
     //create arrows
     gameJS.createArrows();
-
-    //add event listeners
-
-
-
+    gameJS.updateMsg("Starting Game");
     gameJS.nextTurn();
   },
 
@@ -311,6 +354,7 @@ var gameJS = {
   getProfBonus: function(prof){//send stat and then return the prof bonus.
     return Math.floor((prof-10)/2);
   },
+
   playerAttack: function(attk1, hit1, attkBonus1, dmgBonus1, enemyAC1){//attack dice, total hit (prof +str/dex),any other bonus,damage bonus (str/dex)
     var roll = gameJS.rollDice("1d20");
     if (roll + hit1 + attkBonus1 > enemyAC1){
@@ -320,6 +364,7 @@ var gameJS = {
       return 0;
     }
   },
+
   rollDice: function(dice){
     var parts = dice.split("d")
     var num = parts[0];//number of dice
@@ -360,6 +405,7 @@ var gameJS = {
       timeExtender++;
     }
   },
+
   simpleAI: function(){
 
   },
