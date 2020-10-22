@@ -82,6 +82,8 @@ var gameJS = {
     document.getElementById("sw").addEventListener("click",function() {gameJS.move("sw");});
     document.getElementById("s").addEventListener("click",function() {gameJS.move("s");});
     document.getElementById("se").addEventListener("click",function() {gameJS.move("se");});
+    document.getElementById("spec1").addEventListener("click",function() {gameJS.manageSpecial(1,gameJS.characters[gameJS.turn].classStats[gameJS.characters[gameJS.turn].lvl][2]);});
+    document.getElementById("spec1").innerHTML = gameJS.characters[gameJS.turn].classStats[gameJS.characters[gameJS.turn].lvl][2];//get level of charcater and 2 is special 1
   },
   hideArrows: function(){
     document.getElementById("gamePad").style.display = "none";
@@ -159,9 +161,18 @@ var gameJS = {
   useSpecial: function(spec){
     if (spec == "cleave"){
       gameJS.turnAttks += 1;
+      gameJS.updateMsg(gameJS.characters[gameJS.turn].name+" just used cleave")
     }
     else if (spec.includes("heal")){
-
+      var dice = "1d"+spec.slice(-1);
+      var bonus = 0;
+      if (gameJS.characters[gameJS.turn].charClass == "fighter"){
+        bonus = gameJS.getProfBonus(gameJS.characters[gameJS.turn].con);
+      }
+      else if (gameJS.characters[gameJS.turn].charClass == "cleric"){
+        bonus = gameJS.getProfBonus(gameJS.characters[gameJS.turn].wis);
+      }
+      gameJS.characters[gameJS.turn].hp += (gameJS.rollDice(dice)+bonus);
     }
   },
   manageSpecial: function(specNum, spec){
