@@ -15,7 +15,7 @@ function process() {
   var color = cell3.getValue();
   if (color == "lightgray"){color = "gainsboro";}
   
-  var board = "gameJS.createBoard("+x+","+y+",[";
+  var board = "gameJS.createBoard("+y+","+x+",[";
   var badDudes = "";
   
   for(var i = 0;i < y; i++){
@@ -24,19 +24,41 @@ function process() {
       var content = cell.getValue();
       //check for blocks
       if (content == "x"){
-        board += '"black,blocked"';
+        board += '"black,blocked,none"';
+      }
+      else if (content == "xh"){
+        board += '"black,blocked,hiddenEntrance"';
       }
       else if (content == "s"){
-        board += '"blue,home"';
+        board += '"blue,home,none"';
       }
-      else if (content == "d"){
-        board += '"gray,door"';
+      else if (content == "e"){
+        board += '"pink,exit,exit"';
       }
-      else if (content == "h"){
-        board += '"white,hidden"';
+      else if (content.includes("d")){
+        if (content == "d"){
+          board += '"gray,door,none"';
+        }
+        else{
+          board += '"gray,door,'+content+'"';
+        }
+      }
+      else if (content.includes("h")){
+        if (content == "h"){
+          board += '"white,hidden,none"';
+        }
+        else{
+          board += '"white,hidden,'+content+'"';
+        }
+      }
+      else if (content.includes("p")){
+        board += '"'+color+',none,'+content+'"';
+      }
+      else if (content == "k1"){
+        board += '"'+color+',none,k1"';
       }
       else{
-        board += '"'+color+',none"';
+        board += '"'+color+',none,none"';
       }
       //check for monsters
       if (content == "g"){
@@ -59,7 +81,7 @@ function createChar() {
   var destination = SpreadsheetApp.getActiveSpreadsheet();
   var sheet = destination.getSheetByName("CharacterCreator");  
   
-  var range2 = sheet.getRange("B2:B17");
+  var range2 = sheet.getRange("B2:B25");
   var name = range2.getCell(1,1).getValue();
   var yLoc = range2.getCell(2,1).getValue();
   var xLoc = range2.getCell(3,1).getValue();
@@ -76,8 +98,10 @@ function createChar() {
   var cha = range2.getCell(14,1).getValue();
   var charClass = range2.getCell(15,1).getValue();
   var lvl = range2.getCell(16,1).getValue();
+  var ai = range2.getCell(17,1).getValue();
+  var type = range2.getCell(18,1).getValue();
   
-  var char = 'var '+name.toLowerCase()+' = new gameJS.character("'+name+'",'+yLoc+','+xLoc+','+hp+',"'+armor+'","'+wep+'",'+range+',"'+img+'",'+str+','+dex+','+con+','+wis+','+int+','+cha+',"'+charClass+'",'+lvl+');';
+  var char = 'var '+name.toLowerCase()+' = new gameJS.character("'+name+'",'+yLoc+','+xLoc+','+hp+',"'+armor+'","'+wep+'",'+range+',"'+img+'",'+str+','+dex+','+con+','+wis+','+int+','+cha+',"'+charClass+'",'+lvl+',"'+ai+'","'+type+'");';
   
   var range5 = sheet.getRange("A1:A1");
   var cell5 = range5.getCell(1,1);
