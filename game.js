@@ -13,6 +13,8 @@ var gameJS = {
   turnDeath: [],//track those who die that turn
   turnIsSpecialAttk: ["false",1],//are they using a spcial attk this round and which one
   endState: "death",
+  endStatesComplete: [],//will hold endstates for when they need to complete more than one
+  end: false,//is the endState met?
 
 
 
@@ -37,15 +39,7 @@ var gameJS = {
         if (boardOptions1){//know that there are options
           var parts = boardOptions1[opts].split(",");//count through each opt every board piece
           //colEl.classList.add(parts[1]);
-          if (parts[2] == "d1"){
-            colEl.innerHTML = '<img src="pics/keyHole.png">';
-          }
-          else if (parts[2] == "k1"){
-            colEl.innerHTML = '<img src="pics/key.png">';
-            colEl.className += " "+parts[2];
-          }
-          colEl.className += " "+parts[1];
-          colEl.style.background = parts[0];
+          gameJS.checkBoardOptions(parts,colEl);
           opts++;
         }
         else{//no custom board
@@ -60,7 +54,22 @@ var gameJS = {
 
   },
   //do all the stuff needed to set up each board piece
-  checkBoardOptions: function(parts, el){
+  checkBoardOptions: function(parts, colEl){
+    if (parts[2] == "d1"){
+      colEl.innerHTML = '<img src="pics/keyHole.png">';
+      colEl.className += " door"+parts[2].slice(-1);//add number to door
+    }
+    else if (parts[2] == "k1"){
+      colEl.innerHTML = '<img src="pics/key.png">';
+      colEl.className += " key"+parts[2].slice(-1);//add number to key
+    }
+    else if (parts[2] == "h1"){//hide acutal element so it can be show later (will allow hide of objects)
+      colEl.style.visibility = 'hidden';
+      //colEl.innerHTML = '<img src="pics/key.png">';
+      colEl.className += " hide"+parts[2].slice(-1);//add number to hide to track to door
+    }
+    colEl.className += " "+parts[1];
+    colEl.style.background = parts[0];
 
   },
   //
@@ -83,17 +92,20 @@ var gameJS = {
     document.getElementById("s").addEventListener("click",function() {gameJS.move("s");});
     document.getElementById("se").addEventListener("click",function() {gameJS.move("se");});
     document.getElementById("spec1").addEventListener("click",function() {gameJS.manageSpecial(1,gameJS.characters[gameJS.turn].classStats[gameJS.characters[gameJS.turn].lvl][2]);});
-    document.getElementById("spec1").innerHTML = gameJS.characters[gameJS.turn].classStats[gameJS.characters[gameJS.turn].lvl][2];//get level of charcater and 2 is special 1
+    document.getElementById("spec1").innerHTML = gameJS.characters[gameJS.turn].classStats[gameJS.characters[gameJS.turn].lvl-1][2];//get level of charcater and 2 is special 1
   },
   hideArrows: function(){
     document.getElementById("gamePad").style.display = "none";
   },
   showArrows: function(){
+    gameJS.createArrows();
     document.getElementById("gamePad").style.display = "block";
   },
 
   updateMsg: function(msg){
-    document.getElementById("msgBoxInner").innerHTML += (msg+"<br>");
+    if (msg != "none"){
+      document.getElementById("msgBoxInner").innerHTML += (msg+"<br>");
+    }
     document.getElementById("statPlayer").innerHTML = gameJS.characters[gameJS.turn].name;
     document.getElementById("statMov").innerHTML = gameJS.turnMov;
     document.getElementById("statAttk").innerHTML = gameJS.turnAttks;
@@ -110,11 +122,11 @@ var gameJS = {
     this.locY = locY1;
     this.locX = locX1;
     this.classStats = gameJS.returnClass(charClass1);
-    if (charClass1 == "monster" || charClass1 == "npc"){
+    if (type1 == "monster" || type1 == "npc"){
       this.hp = hp1;
     }
-    else{//get based on class and level
-      this.hp = hp1;
+    else{//get based on class and level + con*lvl
+      this.hp = this.classStats[lvl1-1][0]+(gameJS.getProfBonus(con1)*lvl1);
     }
     this.armorClass = gameJS.getArmorClass(armor1,dex1);
     this.armor = armor1;
@@ -147,7 +159,7 @@ var gameJS = {
 
   //classes "hp,statbonus,special,times,special2,times"
   fighter: [[10,"none","cleave",1,"none",0],[16,"none","cleave",1,"none",0],[22,"none","cleave",2,"none",0],[28,"str","cleave",2,"none",0],[34,"none","cleave",3,"none",0]],
-  cleric: [[8,"none","heal6",1,"none",0],["heal6",1,"none",0,13,"none"],[18,"none","heal6",2,"none",0],[23,"wis","heal6",2,"none",0],[28,"none","heal8",2,"none",0]],
+  cleric: [[8,"none","heal6",1,"none",0],[13,"none","heal6",1,"none",0],[18,"none","heal6",2,"none",0],[23,"wis","heal6",2,"none",0],[28,"none","heal8",2,"none",0]],
   ninja: [],
   returnClass: function(charClass){
     if (charClass == "fighter"){
@@ -161,18 +173,24 @@ var gameJS = {
   useSpecial: function(spec){
     if (spec == "cleave"){
       gameJS.turnAttks += 1;
-      gameJS.updateMsg(gameJS.characters[gameJS.turn].name+" just used cleave")
+      gameJS.updateMsg(gameJS.characters[gameJS.turn].name+" just used cleave");
     }
     else if (spec.includes("heal")){
       var dice = "1d"+spec.slice(-1);
       var bonus = 0;
       if (gameJS.characters[gameJS.turn].charClass == "fighter"){
         bonus = gameJS.getProfBonus(gameJS.characters[gameJS.turn].con);
+        gameJS.characters[gameJS.turn].hp += (gameJS.rollDice(dice)+bonus);
       }
       else if (gameJS.characters[gameJS.turn].charClass == "cleric"){
         bonus = gameJS.getProfBonus(gameJS.characters[gameJS.turn].wis);
+        gameJS.characters[gameJS.turn].hp += (gameJS.rollDice(dice)+bonus);//chekc max health...
+        gameJS.updateMsg(gameJS.characters[gameJS.turn].name+" just used heal");
       }
       gameJS.characters[gameJS.turn].hp += (gameJS.rollDice(dice)+bonus);
+    }
+    else{
+      gameJS.updateMsg(gameJS.characters[gameJS.turn].name+" just used 'none''");
     }
   },
   manageSpecial: function(specNum, spec){
@@ -187,6 +205,9 @@ var gameJS = {
     else if (gameJS.characters[gameJS.turn].special3times > 0 && specNum == 3){
       gameJS.characters[gameJS.turn].special3times -= 1;
       gameJS.useSpecial(spec);
+    }
+    else{
+      gameJS.updateMsg(gameJS.characters[gameJS.turn].name+" is out of special -> "+spec);
     }
   },
 
@@ -210,6 +231,9 @@ var gameJS = {
     }
     else if (armor == "studdedleather"){
       return 12+dexMod;
+    }
+    else if (armor == "chainshirt"){
+      return 13+(Math.min(dexMod,2));//Dex mod or 2 which ever is lower (gives you max dex of 2)
     }
   },
 
@@ -255,7 +279,15 @@ var gameJS = {
     if (gameJS.turn >= gameJS.characters.length){//reset turn
       gameJS.turn = 0;
     }
-    setTimeout(gameJS.nextTurn,500);//give deleteDead time to work.
+    if(gameJS.end){//check if endGame
+      if (option == "win"){
+        document.body.innerHTML = '<h1 style="text-align:center;">You gone and won the level</h1><h2 style="text-align:center;">Please refresh the page to play again</h2>';
+
+      }
+    }
+    else{
+      setTimeout(gameJS.nextTurn,500);//give deleteDead time to work.
+    }
   },
 
   move: function(dir1){
@@ -315,7 +347,13 @@ var gameJS = {
       console.log(locEl.className);
       //if monster - attack
       move = gameJS.checkMovt4Attk(dirX, dirY);//check if can attack, attack, else can try to move.
-      if (locEl.classList.contains("none") && move == true){//might have trouble if it is an item on ground//if wall no move and not out of bounds
+      if (locEl.classList.contains("exit") && move == true){//reached the exit but don't move if attk
+        gameJS.checkEndState("exit");
+      }
+      else if (locEl.classList.contains("door") && move == true){//check if door, then if have key...
+
+      }
+      else if (locEl.classList.contains("none") && move == true){//might have trouble if it is an item on ground//if wall no move and not out of bounds
         gameJS.removePic(gameJS.characters[gameJS.turn].locX,gameJS.characters[gameJS.turn].locY);
         gameJS.characters[gameJS.turn].locX = dirX;
         gameJS.characters[gameJS.turn].locY = dirY;
@@ -365,11 +403,19 @@ var gameJS = {
   setEndState:function(goal){
     gameJS.endState = goal;
   },
-  checkEndState: function(){
-    //if goal kill enemy check if all dead
-
-    //if goal home check if they are at end block
-
+  checkEndState: function(info){
+    if (gameJS.endState == "death" || gameJS.endState == "either"){//if goal kill enemy check if all dead
+      if (gameJS.characters.length - gameJS.turnDeath.length == 1){
+        gameJS.end = true;
+        gameJS.endTurn("win");
+      }
+    }
+    if(gameJS.endState == "exit" || gameJS.endState == "either") {//if goal home check if they are at end block
+      if (info == "exit"){
+        gameJS.end = true;
+        gameJS.endTurn("win");
+      }
+    }
   },
 
   removePic: function(x,y){//use to clear old location or dead character char
@@ -389,14 +435,18 @@ var gameJS = {
   death: function(character){//if character is < 0 they die remove from list and board
     character.dead = 1;
     //remove from board
-    gameJS.removePic(character.locX,character.locY);
+    gameJS.removePic(character.locX,character.locY);//move them off map until they can be removed at the end of the turn
     character.locX = 0;
     character.locY = 0;
     if (character.type != "monster"){//will need mod for npc and or multiplayer
       document.body.innerHTML = '<h1 style="text-align:center;">You done died</h1><h2 style="text-align:center;">Please refresh the page to try again</h2>';
+      gameJS.endTurn("gameover");
     }
-    gameJS.turnDeath.push(character);
-    console.log(gameJS.turnDeath);
+    else{
+      gameJS.turnDeath.push(character);
+      console.log(gameJS.turnDeath);
+      gameJS.checkEndState();
+    }
   },
 
   deleteDead: function(){//delete the dead at the end of the turn
@@ -473,7 +523,6 @@ var gameJS = {
       var dir = dirs[Math.floor(Math.random() * dirs.length)];;
       gameJS.move(dir);
     }
-
     //if not end of
     if (gameJS.turnMov < 1){
       console.log("Dumb enemy turn is over")
@@ -481,7 +530,7 @@ var gameJS = {
     }
     else{
       setTimeout(gameJS.dumbAI,500);
-      gameJS.updateMsg("dumbAI action");
+      gameJS.updateMsg("none");
     }
   },
 
