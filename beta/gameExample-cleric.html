@@ -1,0 +1,108 @@
+<html>
+  <head>
+
+  </head>
+  <body>
+    <div id="senario">Kill the Goblins</div>
+    <div id="gameBoard"></div>
+    <div id="gamePad">
+      <table><!--  Already in code  -->
+        <tr>
+          <td><img src="pics/nw.png" alt="direction arrow" id="nw"></td>
+          <td><img src="pics/n.png" alt="direction arrow" id="n"></td>
+          <td><img src="pics/ne.png" alt="direction arrow" id="ne"></td>
+        </tr>
+        <tr>
+          <td><img src="pics/w.png" alt="direction arrow" id="w"></td>
+          <td><img src="pics/endTurn.png"  id="endTurn"></td>
+          <td><img src="pics/e.png" alt="direction arrow" id="e"></td>
+        </tr>
+        <tr>
+          <td><img src="pics/sw.png" alt="direction arrow" id="sw"></td>
+          <td><img src="pics/s.png" alt="direction arrow" id="s"></td>
+          <td><img src="pics/se.png" alt="direction arrow" id="se"></td>
+        </tr>
+        <tr style="font-size:8px;">
+          <td><div>Special 1</div><div id="spec1"></div></td>
+          <td><div>Special 2</div><div id="spec2"></div></td>
+          <td><div>Special 3</div><div id="spec3"></div></td>
+        </tr>
+      </table>
+    </div>
+    <div id="characters"></div>
+    <div id="legend">
+      <table>
+        <tr>
+          <td>Start</td><td style="height:20px;width:20px;background:blue;"></td>
+        </tr>
+        <tr>
+          <td>Ground</td><td style="height:20px;width:20px;background:green;"></td>
+        </tr>
+        <tr>
+          <td>Wall</td><td style="height:20px;width:20px;background:black;"></td>
+        </tr>
+        <tr>
+          <td>Door</td><td style="height:20px;width:20px;background:gray;"></td>
+        </tr>
+        <tr>
+          <td>Hidden</td><td style="height:20px;width:20px;background:white;"></td>
+        </tr>
+        <tr></tr>
+      </table>
+    </div>
+    <div id="msgBox">
+      <div id="msgBoxInner" style="width:200px;height:500px;overflow:auto;position:fixed;top:0px;right:0px;"></div>
+    </div>
+    <div id="stats">
+      <table>
+        <tr>
+          <td>Players Turn</td><td id="statPlayer"></td>
+        </tr>
+        <tr>
+          <td>Movement</td><td id="statMov"></td>
+        </tr>
+        <tr>
+          <td>Attacks</td><td id="statAttk"></td>
+        </tr>
+        <tr>
+          <td>Actions</td><td id="statAct"></td>
+        </tr>
+        <tr>
+          <td>HP</td><td id="statHP"></td>
+        </tr>
+      </table>
+    </div>
+    <script src="game.js"></script>
+    <script>
+      //gameJS.createBoard(10,10);
+      /*
+      gameJS.createBoard(10,10,["blue,home","black,blocked","green,none","black,blocked","green,none","green,none","green,none","green,none","green,none","green,none","green,none","green,none","green,none","green,none","green,none","green,none","green,none","green,none","green,none","green,none","green,none","green,none","green,none","green,none","green,none","green,none","green,none","green,none","green,none","green,none","green,none","green,none","black,blocked","black,blocked","green,none","green,none","green,none","green,none","green,none","green,none","green,none","green,none","black,blocked","black,blocked","green,none","green,none","green,none","green,none","green,none","green,none","green,none","green,none","green,none","green,none","green,none","green,none","green,none","green,none","green,none","green,none","green,none","green,none","green,none","green,none","green,none","green,none","black,blocked","black,blocked","black,blocked","black,blocked","green,none","green,none","green,none","green,none","green,none","green,none","gray,door","white,hidden","white,hidden","white,hidden","green,none","green,none","green,none","green,none","green,none","green,none","black,blocked","white,hidden","white,hidden","white,hidden","black,blocked","green,none","green,none","green,none","green,none","green,none","black,blocked","white,hidden","white,hidden","white,hidden"]);
+      var goblin1 = Object.create(goblin);
+      goblin1.name = "Goblin1";
+      goblin1.hp = 10;
+      goblin1.locY = 6;
+      goblin1.locX = 4;
+      */
+
+      gameJS.createBoard(10,14,["blue,home,none","green,none,none","green,none,none","black,blocked,none","green,none,none","green,none,none","green,none,none","green,none,none","green,none,none","green,none,none","green,none,none","green,none,none","green,none,none","green,none,none","green,none,none","green,none,none","green,none,none","green,none,none","green,none,none","green,none,none","green,none,none","green,none,none","green,none,none","green,none,none","green,none,none","green,none,none","green,none,none","green,none,none","green,none,none","green,none,none","green,none,none","green,none,none","green,none,none","green,none,none","green,none,none","green,none,none","green,none,none","green,none,none","green,none,none","green,none,none","green,none,none","green,none,none","green,none,none","green,none,none","black,blocked,none","black,blocked,none","green,none,none","green,none,none","green,none,none","green,none,none","green,none,none","green,none,none","green,none,none","green,none,none","green,none,none","green,none,none","green,none,none","green,none,none","black,blocked,none","black,blocked,none","green,none,none","green,none,none","green,none,none","green,none,none","green,none,none","green,none,none","green,none,none","green,none,none","green,none,none","green,none,none","green,none,none","green,none,none","green,none,none","green,none,none","green,none,none","green,none,none","green,none,none","green,none,none","green,none,none","green,none,none","green,none,none","green,none,none","green,none,none","green,none,none","green,none,none","green,none,none","green,none,none","green,none,none","green,none,none","green,none,none","black,blocked,none","black,blocked,none","black,blocked,none","black,blocked,none","black,blocked,none","green,none,none","green,none,none","green,none,none","green,none,none","green,none,none","green,none,none","green,none,none","green,none,none","green,none,none","gray,door,d1","green,hidden,h1","green,hidden,h1","green,hidden,h1","black,blocked,none","green,none,none","green,none,none","green,none,none","green,none,none","green,none,none","green,none,none","green,none,none","green,none,none","green,none,none","black,blocked,none","green,hidden,h1","green,hidden,h1","green,hidden,h1","black,blocked,none","green,none,none","green,none,none","green,none,none","black,blocked,none","green,none,none","green,none,none","green,none,none","green,none,none","green,none,none","black,blocked,none","green,hidden,h1","green,hidden,h1","green,hidden,h1","black,blocked,none","green,none,none","green,none,none","green,key,k1"]);
+      var goblin1 = Object.create(goblin);
+      goblin1.name = "Goblin1";
+      goblin1.locY = 4;
+      goblin1.locX = 10;
+      var goblin2 = Object.create(goblin);
+      goblin2.name = "Goblin2";
+      goblin2.locY = 6;
+      goblin2.locX = 4;
+
+      //document.getElementById('gameBoard').innerHTML = goblin2.name;
+      //Enter characters
+      var steve = new gameJS.character("Steve",1,1,10,"studdedleather","scimitar",6,"fighter.png",14,12,12,10,9,12,"fighter",1,"none","player");
+      var alex = new gameJS.character("Alex",1,1,0,"chainshirt","hammer",6,"cleric.png",14,10,12,14,10,11,"cleric",1,"none","player");
+      gameJS.characters = [goblin2,goblin1,alex];//need to add all characters here
+      gameJS.endState = "exit";//death is default, change if needed (exit, )
+      gameJS.addExit(9,9,"pink");
+      gameJS.startGame(gameJS.characters);
+      console.log(gameJS.characters);
+    </script>
+  </body>
+</html>
