@@ -24,7 +24,7 @@ function process() {
       var content = cell.getValue();
       //check for blocks
       if (content == "x"){
-        board += '"black,blocked,none"';
+        board += '"black,blocked,wall"';
       }
       else if (content == "xh"){
         board += '"black,blocked,hiddenEntrance"';
@@ -37,7 +37,7 @@ function process() {
       }
       else if (content.includes("d")){
         if (content == "d"){
-          board += '"gray,door,none"';
+          board += '"gray,door,door"';
         }
         else{
           board += '"gray,door,'+content+'"';
@@ -45,17 +45,17 @@ function process() {
       }
       else if (content.includes("h")){
         if (content == "h"){
-          board += '"white,hidden,none"';
+          board += '"'+color+',hidden,hide"';
         }
         else{
-          board += '"white,hidden,'+content+'"';
+          board += '"'+color+',hidden,'+content+'"';
         }
       }
       else if (content.includes("p")){
         board += '"'+color+',none,'+content+'"';
       }
       else if (content == "k1"){
-        board += '"'+color+',none,k1"';
+        board += '"'+color+',key,k1"';
       }
       else{
         board += '"'+color+',none,none"';
