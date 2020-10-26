@@ -1,4 +1,4 @@
-#Current Features
+# Current Features
 
 Create Characters
 Create Map
@@ -17,5 +17,5 @@ Classes to level 5
   Fighter
 
 
-#Future Updates
+# Future Updates
 Potions
