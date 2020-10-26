@@ -351,15 +351,48 @@ var gameJS = {
         gameJS.checkEndState("exit");
       }
       else if (locEl.classList.contains("door") && move == true){//check if door, then if have key...
+        var classNames = locEl.className.split(' ');
+        var name = classNames[1];
+        var num = name.slice(-1);
+        if (gameJS.characters[gameJS.turn].items.includes("key"+num)){
+          gameJS.unhide(num);//unhide
+          locEl.classList.remove("door");//open door
+          //remove key?
+          gameJS.completeMove(dirX, dirY);
+          locEl.className += " none";
+          return true;//moved
+        }
 
       }
-      else if (locEl.classList.contains("none") && move == true){//might have trouble if it is an item on ground//if wall no move and not out of bounds
-        gameJS.removePic(gameJS.characters[gameJS.turn].locX,gameJS.characters[gameJS.turn].locY);
-        gameJS.characters[gameJS.turn].locX = dirX;
-        gameJS.characters[gameJS.turn].locY = dirY;
-        gameJS.placeCharacter(gameJS.characters[gameJS.turn]);
+      else if (locEl.classList.contains("key") && move == true){//check if door, then if have key...
+        var classNames = locEl.className.split(' ');
+        var name = classNames[1];
+        gameJS.characters[gameJS.turn].items.push(name);
+        gameJS.completeMove(dirX, dirY);
+        console.log(gameJS.characters[gameJS.turn].items);
+        gameJS.updateMsg(gameJS.characters[gameJS.turn].name+" picked up "+name);
         return true;//moved
       }
+      else if (locEl.classList.contains("none") && move == true){//might have trouble if it is an item on ground//if wall no move and not out of bounds
+        gameJS.completeMove(dirX, dirY)
+        return true;//moved
+      }
+    }
+  },
+
+  completeMove: function(dirX, dirY){
+    gameJS.removePic(gameJS.characters[gameJS.turn].locX,gameJS.characters[gameJS.turn].locY);
+    gameJS.characters[gameJS.turn].locX = dirX;
+    gameJS.characters[gameJS.turn].locY = dirY;
+    gameJS.placeCharacter(gameJS.characters[gameJS.turn]);
+  },
+
+  unhide: function(num){
+    var hidEl = document.getElementsByClassName("hide"+num);
+    console.log("hide"+num);
+    for (var i = 0;i < hidEl.length;i++){
+      hidEl[i].style.visibility = "visible";
+      hidEl[i].className += " none";
     }
   },
 
