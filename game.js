@@ -72,6 +72,13 @@ var gameJS = {
     colEl.style.background = parts[0];
 
   },
+
+  addExit: function(dirX,dirY,color){
+    //"row"+(1+i)+"_"+"col"+(1+j);
+    var changeEl = document.getElementById("row"+(dirY)+"_"+"col"+(dirX));
+    changeEl.className += " exit";
+    changeEl.style.background = color;
+  },
   //
   createLegend: function(defaultGround){//the default color will apply to the Ground
     var legEl = document.getElementById("legend");
