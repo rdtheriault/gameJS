@@ -79,6 +79,14 @@ var gameJS = {
     changeEl.className += " exit";
     changeEl.style.background = color;
   },
+
+  addKey: function(dirX,dirY,fileLoc, key){
+    var changeEl = document.getElementById("row"+(dirY)+"_"+"col"+(dirX));
+    changeEl.classList.remove("none");
+    changeEl.className += (" key");
+    changeEl.className += (" "+key);
+    changeEl.innerHTML = '<img src="pics/'+fileLoc+'"">';
+  },
   //
   createLegend: function(defaultGround){//the default color will apply to the Ground
     var legEl = document.getElementById("legend");
@@ -108,6 +116,22 @@ var gameJS = {
     gameJS.createArrows();
     document.getElementById("gamePad").style.display = "block";
   },
+  addWASD: function(){
+    document.body.onkeyup = function(e){
+      if(e.keyCode == 38||e.keyCode == 87){
+        gameJS.move("n");console.log('n');
+      }
+      if(e.keyCode == 37||e.keyCode == 65){
+        gameJS.move("w");console.log('w');
+      }
+      if(e.keyCode == 40||e.keyCode == 83){
+        gameJS.move("s");console.log('s');
+      }
+      if(e.keyCode == 39||e.keyCode == 68){
+        gameJS.move("e");console.log('e');
+      }
+    }
+  },
 
   updateMsg: function(msg){
     if (msg != "none"){
@@ -124,7 +148,7 @@ var gameJS = {
 
 
   //player monster npc stats
-  character: function(name1, locY1, locX1, hp1, armor1, weapon1, range1, img1, str1, dex1, con1, wis1, int1, cha1, charClass1, lvl1, ai1, type1){
+  character: function(name1, locY1, locX1, hp1, armor1, weapon1, offhand1, range1, img1, str1, dex1, con1, wis1, int1, cha1, charClass1, lvl1, ai1, type1){
     this.name = name1;
     this.locY = locY1;
     this.locX = locX1;
@@ -135,12 +159,15 @@ var gameJS = {
     else{//get based on class and level + con*lvl
       this.hp = this.classStats[lvl1-1][0]+(gameJS.getProfBonus(con1)*lvl1);
     }
-    this.armorClass = gameJS.getArmorClass(armor1,dex1);
+    var ac = gameJS.getArmorClass(armor1,dex1);
     this.armor = armor1;
+    if (offhand1 == "shield"){ac += 2;}
+    this.armorClass = ac;
     this.attk = gameJS.getWeaponDamage(weapon1);
     this.weapon = weapon1;
     this.attks = 1;//may change with class
     this.attkBonus = 0;//dex or str? or class/weapon special?
+    this.offhand = offhand1;
     this.range = range1;
     this.img = img1;
     this.str = str1;
@@ -309,8 +336,26 @@ var gameJS = {
       move = 0;
     }
     //diagonal moves 1.5
-
-
+    if (dir1 == "ne" && move != 0){
+      newY = gameJS.characters[gameJS.turn].locY - 1;
+      newX = gameJS.characters[gameJS.turn].locX + 1;
+      move = 1.5;
+    }
+    else if (dir1 == "se" && move != 0){
+      newY = gameJS.characters[gameJS.turn].locY + 1;
+      newX = gameJS.characters[gameJS.turn].locX + 1;
+      move = 1.5;
+    }
+    else if (dir1 == "sw" && move != 0){
+      newY = gameJS.characters[gameJS.turn].locY + 1;
+      newX = gameJS.characters[gameJS.turn].locX - 1;
+      move = 1.5;
+    }
+    else if (dir1 == "nw" && move != 0){
+      newY = gameJS.characters[gameJS.turn].locY - 1;
+      newX = gameJS.characters[gameJS.turn].locX - 1;
+      move = 1.5;
+    }
     //straight moves 1
     if (dir1 == "n" && move != 0){
       newY = gameJS.characters[gameJS.turn].locY - 1;
@@ -371,10 +416,12 @@ var gameJS = {
         }
 
       }
-      else if (locEl.classList.contains("key") && move == true){//check if door, then if have key...
+      else if (locEl.classList.contains("key") && move == true && gameJS.characters[gameJS.turn].type != "monster"){//check if a key, don't go if monster...
         var classNames = locEl.className.split(' ');
         var name = classNames[1];
         gameJS.characters[gameJS.turn].items.push(name);
+        locEl.classList.remove("key");
+        locEl.className += " none";
         gameJS.completeMove(dirX, dirY);
         console.log(gameJS.characters[gameJS.turn].items);
         gameJS.updateMsg(gameJS.characters[gameJS.turn].name+" picked up "+name);
@@ -406,12 +453,13 @@ var gameJS = {
   checkMovt4Attk: function(dirX, dirY){//check to see if movement is an attack
     for (var i = 0; i < gameJS.characters.length;i++){
       if (gameJS.characters[i].name != gameJS.characters[gameJS.turn].name && (gameJS.characters[i].locX == dirX && gameJS.characters[i].locY == dirY)){//if not smae charcter and enemy there
+        var okToAttk = gameJS.checkOpponentType(gameJS.characters[gameJS.turn],gameJS.characters[i]);//check type (so monsters don't attack monsters)
         //if no attacks
         if (gameJS.turnAttks < 1){
           console.log(gameJS.characters[gameJS.turn].name+" has no Attacks left");
           gameJS.updateMsg(gameJS.characters[gameJS.turn].name+" has no Attacks left");
         }
-        else{
+        else if (okToAttk){
           //minus attack
           gameJS.turnAttks = gameJS.turnAttks - 1;
           //create attack
@@ -434,10 +482,21 @@ var gameJS = {
           }
           ////attack dice, total hit (prof +str/dex),any other bonus,damage bonus (str/dex)
         }
-        return false;//attacked, don't move
+        return false;//attacked (or something is there to attk), don't move
       }
     }
     return true;//didn't attack, go ahead and try to move
+  },
+
+  checkOpponentType: function(attk,defend){
+    if (attk.type == "monster" && defend.type == "monster"){
+      return false;
+      console.log("Monster tried to attack and other monster");
+    }
+    else if (attk.type == "npc" && defend.type == "player"){//add if hostile to player feature later
+      return false;
+    }
+    return true;
   },
 
   setEndState:function(goal){
@@ -606,14 +665,11 @@ var gameJS = {
 
 };
 //pregen enemies
-var goblin =  new gameJS.character("Goblin",0,0,4,"leather","dagger",4,"goblin.png",10,14,12,8,8,6,"fighter",1,"dumb","monster"); //goblin.locY = 0;
-
+var goblin =  new gameJS.character("Goblin",0,0,4,"leather","dagger","none",4,"goblin.png",10,14,12,8,8,6,"fighter",1,"dumb","monster"); //goblin.locY = 0;
+var fireStoker = new gameJS.character("FireStoker",0,0,6,"studdedleather","dagger","dagger",5,"fireStoker.png",14,10,14,9,8,8,"fighter",1,"dumb","monster");
 
 //how to create a pregen character
 //var goblin2 = Object.create(goblin);//copy all goblin stats
 //goblin2.name = "Goblin2";//rename
 //goblin2.locY = 4;//change y location
 //goblin2.locX - 5;//change x location
-
-//How to create or use character creator
-//var myCharacter =  new gameJS.character("Steve",10,8,14,"1d8",4,"imgLoc");
