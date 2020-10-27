@@ -5,30 +5,7 @@
   <body>
     <div id="senario">Kill the Goblins</div>
     <div id="gameBoard"></div>
-    <div id="gamePad">
-      <table><!--  Already in code  -->
-        <tr>
-          <td><img src="pics/nw.png" alt="direction arrow" id="nw"></td>
-          <td><img src="pics/n.png" alt="direction arrow" id="n"></td>
-          <td><img src="pics/ne.png" alt="direction arrow" id="ne"></td>
-        </tr>
-        <tr>
-          <td><img src="pics/w.png" alt="direction arrow" id="w"></td>
-          <td><img src="pics/endTurn.png"  id="endTurn"></td>
-          <td><img src="pics/e.png" alt="direction arrow" id="e"></td>
-        </tr>
-        <tr>
-          <td><img src="pics/sw.png" alt="direction arrow" id="sw"></td>
-          <td><img src="pics/s.png" alt="direction arrow" id="s"></td>
-          <td><img src="pics/se.png" alt="direction arrow" id="se"></td>
-        </tr>
-        <tr style="font-size:8px;">
-          <td><div>Special 1</div><div id="spec1"></div></td>
-          <td><div>Special 2</div><div id="spec2"></div></td>
-          <td><div>Special 3</div><div id="spec3"></div></td>
-        </tr>
-      </table>
-    </div>
+    <div id="gamePad"></div>
     <div id="characters"></div>
     <div id="legend">
       <table>
@@ -93,14 +70,19 @@
       goblin2.name = "Goblin2";
       goblin2.locY = 6;
       goblin2.locX = 4;
-
+      var firestoker3 = Object.create(fireStoker);
+      firestoker3.name = "FiresStoker3";
+      firestoker3.locY = 9;
+      firestoker3.locX = 14;
       //document.getElementById('gameBoard').innerHTML = goblin2.name;
       //Enter characters
-      var steve = new gameJS.character("Steve",1,1,10,"studdedleather","scimitar",6,"fighter.png",14,12,12,10,9,12,"fighter",1,"none","player");
-      var alex = new gameJS.character("Alex",1,1,0,"chainshirt","hammer",6,"cleric.png",14,10,12,14,10,11,"cleric",1,"none","player");
-      gameJS.characters = [goblin2,goblin1,alex];//need to add all characters here
+      var steve = new gameJS.character("Steve",1,2,10,"studdedleather","scimitar","none",6,"fighter.png",14,12,12,10,9,12,"fighter",1,"none","player");
+      var alex = new gameJS.character("Alex",1,1,0,"chainshirt","hammer","shield",6,"cleric.png",14,10,12,14,10,11,"cleric",1,"none","player");
+      gameJS.characters = [firestoker3,goblin2,goblin1,alex,steve];//need to add all characters here
       gameJS.endState = "exit";//death is default, change if needed (exit, )
       gameJS.addExit(9,9,"pink");
+      gameJS.addKey(9,9,"key.png","key1");
+      gameJS.addWASD();
       gameJS.startGame(gameJS.characters);
       console.log(gameJS.characters);
     </script>
