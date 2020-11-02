@@ -4,6 +4,8 @@ var gameJS = {
   boardW: 10,
   boardH: 10,
   characters: [],
+  nonPlayerTime: 500,
+  winMsg: '<h1 style="text-align:center;">You gone and won the level</h1><h2 style="text-align:center;">Please refresh the page to play again</h2>',
   boardColor: "gainsboro",
   turn: 0,//holds whos turn its on
   turnMov: 0,//holds current movement
@@ -11,7 +13,7 @@ var gameJS = {
   turnActions: 0,//hold number of actions taken
   //turnSpecial: 0,
   turnDeath: [],//track those who die that turn
-  turnIsSpecialAttk: [false,"dmg"],//are they using a spcial attk this round and which one
+  turnIsSpecialAttk: [false,"dmg",0],//are they using a spcial attk this round, what damage, and which one
   endState: "death",
   endStatesComplete: [],//will hold endstates for when they need to complete more than one
   end: false,//is the endState met?
@@ -55,20 +57,24 @@ var gameJS = {
   },
   //do all the stuff needed to set up each board piece
   checkBoardOptions: function(parts, colEl){
-    if (parts[2] == "d1"){
+    if (parts[2].includes("d")){
       colEl.innerHTML = '<img src="pics/keyHole.png">';
+      colEl.className += " "+parts[1];
       colEl.className += " door"+parts[2].slice(-1);//add number to door
     }
-    else if (parts[2] == "k1"){
+    else if (parts[2].includes("k")){
       colEl.innerHTML = '<img src="pics/key.png">';
+      colEl.className += " key";
       colEl.className += " key"+parts[2].slice(-1);//add number to key
     }
-    else if (parts[2] == "h1"){//hide acutal element so it can be show later (will allow hide of objects)
+    else if (parts[2].includes("h")){//hide acutal element so it can be show later (will allow hide of objects)
       colEl.style.visibility = 'hidden';
-      //colEl.innerHTML = '<img src="pics/key.png">';
+      colEl.className += " "+parts[1];
       colEl.className += " hide"+parts[2].slice(-1);//add number to hide to track to door
     }
-    colEl.className += " "+parts[1];
+    else{
+      colEl.className += " "+parts[1];
+    }
     colEl.style.background = parts[0];
 
   },
@@ -84,7 +90,12 @@ var gameJS = {
     var changeEl = document.getElementById("row"+(dirY)+"_"+"col"+(dirX));
     if (fromUser){//fix class if user created it
       changeEl.classList.remove("none");
-      changeEl.className += (" item");
+      if(item.includes("key")){
+        changeEl.className += (" key");
+      }
+      else{
+        changeEl.className += (" item");
+      }
       changeEl.className += (" "+item);
     }
     changeEl.innerHTML = '<img src="pics/'+fileLoc+'"">';
@@ -97,7 +108,7 @@ var gameJS = {
   //
   createArrows: function() {
     var arEl = document.getElementById("gamePad");
-    arEl.innerHTML = '<table><tr><td><img src="pics/nw.png" alt="direction arrow" id="nw"></td><td><img src="pics/n.png" alt="direction arrow" id="n"></td><td><img src="pics/ne.png" alt="direction arrow" id="ne"></td></tr><tr><td><img src="pics/w.png" alt="direction arrow" id="w"></td><td><img src="pics/endTurn.png"  id="endTurn"></td><td><img src="pics/e.png" alt="direction arrow" id="e"></td></tr><tr><td><img src="pics/sw.png" alt="direction arrow" id="sw"></td><td><img src="pics/s.png" alt="direction arrow" id="s"></td><td><img src="pics/se.png" alt="direction arrow" id="se"></td></tr><tr style="font-size:8px;"><td><div>Special 1</div><div id="spec1"></div><div id="spec1times"></div></td><td><div>Special 2</div><div id="spec2"></div><div id="spec1times"></div></td><td><div>Special 3</div><div id="spec3"></div><div id="spec1times"></div></td></tr></table>';
+    arEl.innerHTML = '<table><tr><td><img src="pics/nw.png" alt="direction arrow" id="nw"></td><td><img src="pics/n.png" alt="direction arrow" id="n"></td><td><img src="pics/ne.png" alt="direction arrow" id="ne"></td></tr><tr><td><img src="pics/w.png" alt="direction arrow" id="w"></td><td><img src="pics/endTurn.png"  id="endTurn"></td><td><img src="pics/e.png" alt="direction arrow" id="e"></td></tr><tr><td><img src="pics/sw.png" alt="direction arrow" id="sw"></td><td><img src="pics/s.png" alt="direction arrow" id="s"></td><td><img src="pics/se.png" alt="direction arrow" id="se"></td></tr><tr style="font-size:8px;"><td><div>Special 1</div><div id="spec1"></div><div id="spec1times"></div></td><td><div>Special 2</div><div id="spec2"></div><div id="spec2times"></div></td><td><div>Special 3</div><div id="spec3"></div><div id="spec3times"></div></td></tr></table>';
     gameJS.hideArrows();//hide arrows until player turn.
     document.getElementById("nw").addEventListener("click",function() {gameJS.move("nw");});
     document.getElementById("n").addEventListener("click",function() {gameJS.move("n");});
@@ -111,6 +122,9 @@ var gameJS = {
     document.getElementById("spec1").addEventListener("click",function() {gameJS.manageSpecial(1,gameJS.characters[gameJS.turn].classStats[gameJS.characters[gameJS.turn].lvl-1][2]);});
     document.getElementById("spec1").innerHTML = gameJS.characters[gameJS.turn].classStats[gameJS.characters[gameJS.turn].lvl-1][2];//get level of charcater and 2 is special 1
     document.getElementById("spec1times").innerHTML = gameJS.characters[gameJS.turn].special1times;//get level of charcater and 2 is special 1
+    document.getElementById("spec2").addEventListener("click",function() {gameJS.manageSpecial(2,gameJS.characters[gameJS.turn].classStats[gameJS.characters[gameJS.turn].lvl-1][4]);});
+    document.getElementById("spec2").innerHTML = gameJS.characters[gameJS.turn].classStats[gameJS.characters[gameJS.turn].lvl-1][4];//get level of charcater and 2 is special 1
+    document.getElementById("spec2times").innerHTML = gameJS.characters[gameJS.turn].special2times;//get level of charcater and 2 is special 1
   },
   hideArrows: function(){
     document.getElementById("gamePad").style.display = "none";
@@ -171,7 +185,12 @@ var gameJS = {
     this.attk = gameJS.getWeaponDamage(weapon1);
     this.weapon = weapon1;
     this.attks = 1;//may change with class
-    this.attkBonus = 0;//dex or str? or class/weapon special?
+    if (this.classStats[lvl1-1][8] == "str"){
+      this.attkBonus = gameJS.getProfBonus(str1);
+    }
+    else if (this.classStats[lvl1-1][8] == "dex"){
+      this.attkBonus = gameJS.getProfBonus(dex1);
+    }
     this.offhand = offhand1;
     this.range = range1;
     this.img = img1;
@@ -190,6 +209,8 @@ var gameJS = {
     this.initBonus = 0;//set by class later
     this.special1 = "";//may change on class and level
     this.special1times = this.classStats[lvl1-1][3];//based on class
+    this.special2 = "";//may change on class and level
+    this.special2times = this.classStats[lvl1-1][5];//based on class
     this.ai = ai1;
     this.prof = 2+Math.floor((lvl1-1) / 4);//change with level
     this.dead = 0;
@@ -197,16 +218,18 @@ var gameJS = {
   },
 
   //classes "hp,statbonus,special,times,special2,times"
-  fighter: [[10,"none","cleave",1,"none",0],[16,"none","cleave",1,"none",0],[22,"none","cleave",2,"none",0],[28,"str","cleave",2,"none",0],[34,"none","cleave",3,"none",0]],
-  cleric: [[8,"none","heal6",1,"none",0],[13,"none","heal6",1,"none",0],[18,"none","heal6",2,"none",0],[23,"wis","heal6",2,"none",0],[28,"none","heal8",2,"none",0]],
-  //ninja: [[9,"none","sneak1d6",1,"none",0],[14,"none","sneak1d6",1,"none",0],[20,"none","sneak1d6",1,"cleave",1],[25,"dex","sneak1d6",1,"cleave",1],[31,"none","sneak2d6",1,"cleave",1]],
+  fighter: [[10,"none","cleave",1,"none",0,"none",0,"str"],[16,"none","cleave",1,"none",0,"none",0,"str"],[22,"none","cleave",1,"heal6",1,"none",0,"str"],[28,"str","cleave",2,"heal6",1,"none",0,"str"],[34,"none","cleave",2,"heal6",1,"none",0,"str"]],
+  cleric: [[8,"none","heal6",1,"none",0,"none",0,"str"],[13,"none","heal6",1,"none",0,"none",0,"str"],[18,"none","heal6",2,"none",0,"none",0,"str"],[23,"wis","heal6",2,"none",0,"none",0,"str"],[28,"none","heal8",2,"none",0,"none",0,"str"]],
+  thief: [[8,"none","sneak1d6",1,"none",0,"none",0,"dex"],[13,"none","sneak1d6",1,"none",0,"none",0,"dex"],[18,"none","sneak2d6",1,"none",0,"none",0,"dex"],[23,"wis","sneak2d6",1,"none",0,"none",0,"dex"],[28,"none","sneak3d6",1,"sneak1d6",1,"none",0,"dex"]],
+  //ninja: [[9,"none","sneak1d6",1,"none",0,"none",0,"dex"],[14,"none","sneak1d6",1,"none",0,"none",0,"dex"],[20,"none","sneak1d6",1,"cleave",1,"none",0,"dex"],[25,"dex","sneak1d6",1,"cleave",1,"none",0,"dex"],[31,"none","sneak2d6",1,"cleave",1,"none",0,"dex"]],
   returnClass: function(charClass){
     if (charClass == "fighter"){return gameJS.fighter;}
     else if (charClass == "cleric"){return gameJS.cleric;}
+    else if (charClass == "thief"){return gameJS.thief;}
     //else if (charClass == "ninja"){return gameJS.ninja;}
   },
 
-  useSpecial: function(spec){
+  useSpecial: function(specNum, spec){
     if (spec == "cleave"){
       gameJS.turnAttks += 1;
       gameJS.updateMsg(gameJS.characters[gameJS.turn].name+" just used cleave");
@@ -230,6 +253,7 @@ var gameJS = {
     else if (spec.includes('sneak')){
       gameJS.turnIsSpecialAttk[0] = true;
       gameJS.turnIsSpecialAttk[1] = spec.slice(-3);//get dice roll
+      gameJS.turnIsSpecialAttk[2] = specNum;
       gameJS.updateMsg(gameJS.characters[gameJS.turn].name+" just used sneak attack");
     }
     else{
@@ -240,15 +264,16 @@ var gameJS = {
     if (gameJS.characters[gameJS.turn].special1times > 0 && specNum == 1){
       gameJS.characters[gameJS.turn].special1times -= 1;
       document.getElementById("spec1times").innerHTML = gameJS.characters[gameJS.turn].special1times;
-      gameJS.useSpecial(spec);
+      gameJS.useSpecial(specNum, spec);
     }
     else if (gameJS.characters[gameJS.turn].special2times > 0 && specNum == 2){
       gameJS.characters[gameJS.turn].special2times -= 1;
-      gameJS.useSpecial(spec);
+      document.getElementById("spec2times").innerHTML = gameJS.characters[gameJS.turn].special2times;
+      gameJS.useSpecial(specNum, spec);
     }
     else if (gameJS.characters[gameJS.turn].special3times > 0 && specNum == 3){
       gameJS.characters[gameJS.turn].special3times -= 1;
-      gameJS.useSpecial(spec);
+      gameJS.useSpecial(specNum, spec);
     }
     else{
       gameJS.updateMsg(gameJS.characters[gameJS.turn].name+" is out of special -> "+spec);
@@ -296,8 +321,12 @@ var gameJS = {
   },
 
   //game mechanics
-  checkChars: function(){//check the location of all of the characters
-
+  getPlayerLoc: function(){//check the location of all of the characters
+    for (var i = 0; i < gameJS.characters.length;i++){
+      if (gameJS.characters[i].type == "player"){
+        return [gameJS.characters[i].locX,gameJS.characters[i].locY];
+      }
+    }
   },
 
   nextTurn: function(){//reset turn actions with charcters numbers
@@ -305,10 +334,9 @@ var gameJS = {
     gameJS.turnAttks = gameJS.characters[gameJS.turn].attks;
     gameJS.turnSpecial = gameJS.characters[gameJS.turn].special;
     gameJS.turnActions = 1;
-    gameJS.updateMsg("New Turn -> Character = "+gameJS.characters[gameJS.turn].name);
+    gameJS.updateMsg("New Turn -> "+gameJS.characters[gameJS.turn].name);
     if (gameJS.characters[gameJS.turn].type != "monster"){//player
       gameJS.showArrows();
-
     }
     else{//monster
       gameJS.checkAI(gameJS.characters[gameJS.turn].ai);//get the nonplayers AI and run it
@@ -342,8 +370,7 @@ var gameJS = {
     }
     if(gameJS.end){//check if endGame
       if (option == "win"){
-        document.body.innerHTML = '<h1 style="text-align:center;">You gone and won the level</h1><h2 style="text-align:center;">Please refresh the page to play again</h2>';
-
+        document.body.innerHTML = gameJS.winMsg;//allow custom message
       }
     }
     else{
@@ -404,12 +431,13 @@ var gameJS = {
 
 
     // move check attack up here
-    var canNotAttack = gameJS.checkMovt4Attk(newX, newY);//false means you can attack (there was an attack or could attack if not out of attacks)
+    var canNotAttack = gameJS.checkMovt4Attk(newX, newY,false);//false means you can attack (there was an attack or could attack if not out of attacks)
     if ((move == 1 || move == 1.5) && canNotAttack){
       console.log("Checking move of "+gameJS.characters[gameJS.turn].name+" to location "+newX+","+newY)
       if (gameJS.checkBlock(newX, newY, canNotAttack)){
         gameJS.turnMov = gameJS.turnMov - move;
         console.log(gameJS.characters[gameJS.turn].name+" movement is "+gameJS.turnMov);
+        gameJS.updateMsg("none");
       }
     }
     else if (move == 0){
@@ -434,7 +462,7 @@ var gameJS = {
       }
       else if (locEl.classList.contains("door") && move == true){//check if door, then if have key...
         var classNames = locEl.className.split(' ');
-        var name = classNames[1];
+        var name = classNames[2];
         var num = name.slice(-1);
         if (gameJS.characters[gameJS.turn].items.includes("key"+num)){
           gameJS.unhide(num);//unhide
@@ -446,7 +474,7 @@ var gameJS = {
         }
 
       }
-      else if (locEl.classList.contains("key1") && move == true && gameJS.characters[gameJS.turn].type != "monster"){//check if a key, don't go if monster...
+      else if (locEl.classList.contains("key") && move == true && gameJS.characters[gameJS.turn].type != "monster"){//check if a key, don't go if monster...
         gameJS.getKey(locEl, dirX, dirY);
         return true;//moved
       }
@@ -462,10 +490,14 @@ var gameJS = {
   },
 
   getKey: function(locEl, dirX, dirY){
+    //This is needed as the class locations change if hidden
+    var hasKey = (element) => element == "key";//build equation to check where key is
+
     var classNames = locEl.className.split(' ');
-    var name = classNames[2];
+    var name = classNames[classNames.findIndex(hasKey)+1];
     gameJS.characters[gameJS.turn].items.push(name);
     locEl.classList.remove("key");
+    locEl.classList.remove("item");
     locEl.className += " none";
     gameJS.completeMove(dirX, dirY);
     console.log(gameJS.characters[gameJS.turn].items);
@@ -474,15 +506,16 @@ var gameJS = {
 
   getPotion: function(locEl, dirX, dirY){
     var classNames = locEl.className.split(' ');
-    var name = classNames[2];
+    var hasItem = (element) => element == "item";
+    var name = classNames[classNames.findIndex(hasItem)+1];
     if (name.includes("heal")){
       var dice = "1d"+name.slice(-1);
       gameJS.heal(0,dice);
     }
     else if (name.includes("spec")){
       if (name == "spec1"){gameJS.characters[gameJS.turn].special1times += 1;}
+      document.getElementById("spec1times").innerHTML = gameJS.characters[gameJS.turn].special1times;
     }
-    gameJS.characters[gameJS.turn].items.push(name);
 
     locEl.classList.remove("item");
     locEl.className += " none";
@@ -507,7 +540,7 @@ var gameJS = {
     }
   },
 
-  checkMovt4Attk: function(dirX, dirY){//check to see if movement is an attack
+  checkMovt4Attk: function(dirX, dirY, aiAttk){//check to see if movement is an attack
     for (var i = 0; i < gameJS.characters.length;i++){
       if (gameJS.characters[i].name != gameJS.characters[gameJS.turn].name && (gameJS.characters[i].locX == dirX && gameJS.characters[i].locY == dirY)){//if not smae charcter and enemy there
         var okToAttk = gameJS.checkOpponentType(gameJS.characters[gameJS.turn],gameJS.characters[i]);//check type (so monsters don't attack monsters)
@@ -517,16 +550,18 @@ var gameJS = {
           gameJS.updateMsg(gameJS.characters[gameJS.turn].name+" has no Attacks left");
         }
         else if (!okToAttk){
-          return true;//didn't attack, try next
+          if (aiAttk) {return true;}//didn't attack, try next
+          else {return false;}//not ai attack don't move
           console.log(gameJS.characters[gameJS.turn].name+" is trying to attack "+gameJS.characters[i]);
         }
         else if (okToAttk){
           //minus attack
           gameJS.turnAttks = gameJS.turnAttks - 1;
           //create attack
-          var attkPlus = gameJS.getProfBonus(gameJS.characters[gameJS.turn].str);//make formula for whether to use dex or strength
-          var hit = attkPlus+gameJS.characters[gameJS.turn].prof;
-          var dmg = gameJS.playerAttack(gameJS.characters[gameJS.turn].attk,hit,gameJS.characters[gameJS.turn].attkBonus,attkPlus, gameJS.characters[i].armorClass);
+          var attkBonus = 0;//extra to hit
+          var attk = gameJS.characters[gameJS.turn].attkBonus;//this is extra damage and used to calculate hit
+          var hit = attk+gameJS.characters[gameJS.turn].prof;
+          var dmg = gameJS.playerAttack(gameJS.characters[gameJS.turn].attk,hit,attkBonus,attk,gameJS.characters[i].armorClass);
           if (dmg == 0){
             console.log("Missed "+gameJS.characters[i].name);
             gameJS.updateMsg("Missed "+gameJS.characters[i].name);
@@ -540,6 +575,7 @@ var gameJS = {
           else{
             gameJS.characters[i].hp = gameJS.characters[i].hp - dmg;
             console.log(gameJS.characters[i].name+" takes "+dmg+" damage, life left = "+gameJS.characters[i].hp);
+            gameJS.updateMsg(gameJS.characters[i].name+" takes "+dmg+" damage");
           }
         }
         return false;//attacked (or something is there to attk), don't move
@@ -647,19 +683,31 @@ var gameJS = {
   playerAttack: function(attk1, hit1, attkBonus1, dmgBonus1, enemyAC1){//attack dice, total hit (prof +str/dex),any other bonus,damage bonus (str/dex)
     var roll = gameJS.rollDice("1d20");
     var extra = 0;
+    var special = false;//used special?
     if (gameJS.characters[gameJS.turn].offhand == "dagger"){//get offhand damage
       extra += gameJS.rollDice("1d4");//can do getWeaponDamage()
       console.log("Offhand damage = " + extra);
     }
     if (gameJS.turnIsSpecialAttk[0]){
       extra += gameJS.rollDice(gameJS.turnIsSpecialAttk[1]);//should pull the special from class
-      console.log("Special damage = " + extra);
+      console.log("Special damage (including offhand) = " + extra);
       gameJS.turnIsSpecialAttk[0] = false;
+      special = true;
     }
     if (roll + hit1 + attkBonus1 > enemyAC1){
       return gameJS.rollDice(attk1)+ dmgBonus1 + extra;
     }
     else {
+      if (special){//return sneak attack on miss
+        if (gameJS.turnIsSpecialAttk[2] == 1){
+          gameJS.characters[gameJS.turn].special1times += 1;
+          document.getElementById("spec1times").innerHTML = gameJS.characters[gameJS.turn].special1times;
+        }
+        else if (gameJS.turnIsSpecialAttk[2] == 2){
+          gameJS.characters[gameJS.turn].special2times += 1;
+          document.getElementById("spec2times").innerHTML = gameJS.characters[gameJS.turn].special2times;
+        }
+      }
       return 0;
     }
   },
@@ -668,35 +716,35 @@ var gameJS = {
     var newX = gameJS.characters[gameJS.turn].locX;
     var newY = gameJS.characters[gameJS.turn].locY;
 
-    if (!gameJS.checkMovt4Attk(newX+1,newY-1)){//attacked ne
+    if (!gameJS.checkMovt4Attk(newX+1,newY-1,true)){//attacked ne
       console.log("Attacked player at NE");
       return true;
     }
-    else if (!gameJS.checkMovt4Attk(newX+1,newY+1)){//attacked se
+    else if (!gameJS.checkMovt4Attk(newX+1,newY+1,true)){//attacked se
       console.log("Attacked player at SE");
       return true;
     }
-    else if (!gameJS.checkMovt4Attk(newX-1,newY+1)){//attacked sw
+    else if (!gameJS.checkMovt4Attk(newX-1,newY+1,true)){//attacked sw
       console.log("Attacked player at SW");
       return true;
     }
-    else if (!gameJS.checkMovt4Attk(newX-1,newY-1)){//attacked nw
+    else if (!gameJS.checkMovt4Attk(newX-1,newY-1,true)){//attacked nw
       console.log("Attacked player at NW");
       return true;
     }
-    else if (!gameJS.checkMovt4Attk(newX,newY-1)){//attacked n
+    else if (!gameJS.checkMovt4Attk(newX,newY-1,true)){//attacked n
       console.log("Attacked player at N");
       return true;
     }
-    else if (!gameJS.checkMovt4Attk(newX,newY+1)){//attacked s
+    else if (!gameJS.checkMovt4Attk(newX,newY+1,true)){//attacked s
       console.log("Attacked player at S");
       return true;
     }
-    else if (!gameJS.checkMovt4Attk(newX-1,newY)){//attacked w
+    else if (!gameJS.checkMovt4Attk(newX-1,newY,true)){//attacked w
       console.log("Attacked player at W");
       return true;
     }
-    else if (!gameJS.checkMovt4Attk(newX+1,newY)){//attacked e
+    else if (!gameJS.checkMovt4Attk(newX+1,newY,true)){//attacked e
       console.log("Attacked player at E");
       return true;
     }
@@ -717,7 +765,7 @@ var gameJS = {
   },
 
   //AI
-  dumbAI: function(){//check if attack, attack, else move
+  dumbAI: function(){//check if attack, attack, else move randomly
     var noAttk = false;//no attack left
     if (gameJS.didAttack()){
       if (gameJS.turnAttks <= 0){//check if attack left, end turn
@@ -725,7 +773,7 @@ var gameJS = {
         noAttk = true;
       }
       else{
-        setTimeout(gameJS.dumbAI,500);
+        setTimeout(gameJS.dumbAI,gameJS.nonPlayerTime);
         gameJS.updateMsg("none");
       }
     }
@@ -741,19 +789,19 @@ var gameJS = {
       gameJS.endTurn("enemy");
     }
     else{
-      setTimeout(gameJS.dumbAI,500);
+      setTimeout(gameJS.dumbAI,gameJS.nonPlayerTime);
       gameJS.updateMsg("none");
     }
   },
 
-  guardAI: function(){
+  guardAI: function(){// sit in spot and attack nearby
     if (gameJS.didAttack()){
       if (gameJS.turnAttks <= 0){//check if attack left, end turn
-        console.log("Dumb enemy out of attacks - turn is over")
+        console.log("Guard enemy out of attacks - turn is over")
         gameJS.endTurn("enemy");
       }
       else{
-        setTimeout(gameJS.dumbAI,500);
+        setTimeout(gameJS.guardAI,gameJS.nonPlayerTime);
         gameJS.updateMsg("none");
       }
     }
@@ -762,8 +810,44 @@ var gameJS = {
     }
   },
 
-  simpleAI: function(){
-
+  simpleAI: function(){//move to enemy if can
+    var noAttk = false;//no attack left
+    var ogX = gameJS.characters[gameJS.turn].locX;
+    var ogY = gameJS.characters[gameJS.turn].locY;
+    if (gameJS.didAttack()){
+      if (gameJS.turnAttks <= 0){//check if attack left, end turn
+        console.log(" enemy out of attacks - turn is over")
+        noAttk = true;
+      }
+      else{
+        setTimeout(gameJS.simpleAI,gameJS.nonPlayerTime);
+        gameJS.updateMsg("none");
+      }
+    }
+    else{
+      var playerLoc = gameJS.getPlayerLoc();
+      console.log(playerLoc);
+      if (playerLoc[0] > gameJS.characters[gameJS.turn].locX){//player X greater than enemy X
+        gameJS.move("e");
+      }
+      if (playerLoc[0] < gameJS.characters[gameJS.turn].locX){//player X greater than enemy X
+        gameJS.move("w");
+      }
+      if (playerLoc[1] > gameJS.characters[gameJS.turn].locY){//player X greater than enemy X
+        gameJS.move("s");
+      }
+      if (playerLoc[1] < gameJS.characters[gameJS.turn].locY){//player X greater than enemy X
+        gameJS.move("n");
+      }
+    }
+    if (gameJS.turnMov < 1 || noAttk || (ogX == gameJS.characters[gameJS.turn].locX && ogY == gameJS.characters[gameJS.turn].locY)){// no movement, no attacks, didn't move
+      console.log("Simple enemy turn is over")
+      gameJS.endTurn("enemy");
+    }
+    else{
+      setTimeout(gameJS.simpleAI,gameJS.nonPlayerTime);
+      gameJS.updateMsg("none");
+    }
   },
 
   //multiroom
@@ -794,8 +878,8 @@ var gameJS = {
 
 };
 //pregen enemies
-var goblin =  new gameJS.character("Goblin",0,0,4,"leather","dagger","none",4,"goblin.png",10,14,12,8,8,6,"fighter",1,"dumb","monster"); //goblin.locY = 0;
-var fireStoker = new gameJS.character("FireStoker",0,0,6,"studdedleather","dagger","dagger",5,"fireStoker.png",14,10,14,9,8,8,"fighter",1,"dumb","monster");
+var goblin =  new gameJS.character("Goblin",0,0,4,"leather","dagger","none",4,"goblin.png",10,14,12,8,8,6,"thief",1,"dumb","monster"); //goblin.locY = 0;
+var fireStoker = new gameJS.character("FireStoker",0,0,6,"studdedleather","dagger","dagger",5,"fireStoker.png",14,10,14,9,8,8,"fighter",1,"simple","monster");
 var demon = new gameJS.character("Demon",0,0,60,"chainshirt","longsword","dagger",8,"demon.png",18,12,16,12,14,13,"fighter",5,"guard","monster");
 //how to create a pregen character
 //var goblin2 = Object.create(goblin);//copy all goblin stats
