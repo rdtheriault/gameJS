@@ -1,0 +1,93 @@
+<html>
+  <head>
+
+  </head>
+  <body>
+    <div id="senario">Kill the Goblins</div>
+    <div id="gameBoard"></div>
+    <div id="gamePad"></div>
+    <div id="characters"></div>
+    <div id="legend" style="display:none;">
+      <table>
+        <tr>
+          <td>Start</td><td style="height:20px;width:20px;background:blue;"></td>
+        </tr>
+        <tr>
+          <td>Ground</td><td style="height:20px;width:20px;background:green;"></td>
+        </tr>
+        <tr>
+          <td>Wall</td><td style="height:20px;width:20px;background:black;"></td>
+        </tr>
+        <tr>
+          <td>Door</td><td style="height:20px;width:20px;background:gray;"></td>
+        </tr>
+        <tr>
+          <td>Hidden</td><td style="height:20px;width:20px;background:white;"></td>
+        </tr>
+        <tr></tr>
+      </table>
+    </div>
+    <div id="msgBox">
+      <div id="msgBoxInner" style="width:200px;height:500px;overflow:auto;position:fixed;top:0px;right:0px;"></div>
+    </div>
+    <div id="stats">
+      <table>
+        <tr>
+          <td>Players Turn</td><td id="statPlayer"></td>
+        </tr>
+        <tr>
+          <td>Movement</td><td id="statMov"></td>
+        </tr>
+        <tr>
+          <td>Attacks</td><td id="statAttk"></td>
+        </tr>
+        <tr>
+          <td>Actions</td><td id="statAct"></td>
+        </tr>
+        <tr>
+          <td>HP</td><td id="statHP"></td>
+        </tr>
+      </table>
+    </div>
+    <script src="game.js"></script>
+    <script>
+      //gameJS.createBoard(10,10);
+
+
+      gameJS.createBoard(14,14,["blue,home,none","green,none,none","green,none,none","black,blocked,wall","green,none,none","green,none,none","green,none,none","green,none,none","green,none,none","green,none,none","green,none,none","green,none,none","green,none,none","green,none,none","green,none,none","green,none,none","green,none,none","green,none,none","green,none,none","green,none,none","green,none,none","green,none,none","green,none,none","green,none,none","green,none,none","green,none,none","green,none,none","green,none,none","green,none,none","green,none,none","green,none,none","green,none,none","green,none,none","green,none,none","green,none,none","green,none,none","green,none,none","green,none,none","green,none,none","green,none,none","green,none,none","green,none,none","green,none,none","green,none,none","black,blocked,wall","black,blocked,wall","green,none,none","green,none,none","green,none,none","green,none,none","green,none,none","green,none,none","green,none,none","green,none,none","green,none,none","green,none,none","green,none,none","green,none,none","black,blocked,wall","black,blocked,wall","green,none,none","green,none,none","green,none,none","green,none,none","green,none,none","green,none,none","green,none,none","green,none,none","green,none,none","green,none,none","green,none,none","green,none,none","green,none,none","green,none,none","green,none,none","green,none,none","green,none,none","green,none,none","green,none,none","green,none,none","green,none,none","green,none,none","green,none,none","green,none,none","green,none,none","green,none,none","green,none,none","green,none,none","green,none,none","green,none,none","black,blocked,wall","black,blocked,wall","black,blocked,wall","black,blocked,wall","black,blocked,wall","green,none,none","green,none,none","green,none,none","green,none,none","green,none,none","green,none,none","green,none,none","green,none,none","green,none,none","gray,door,d1","green,hidden,h1","green,hidden,h1","green,hidden,h1","black,blocked,wall","green,none,none","green,none,none","green,none,none","green,none,none","green,none,none","green,none,none","green,none,none","green,none,none","green,none,none","black,blocked,wall","black,blocked,wall","green,hidden,h1","green,hidden,h1","black,blocked,wall","green,none,none","green,none,none","green,none,none","black,blocked,wall","green,none,none","green,none,none","green,none,none","green,none,none","green,none,none","black,blocked,wall","green,hidden,h1","green,hidden,h1","green,hidden,h1","black,blocked,wall","green,none,none","green,none,none","green,key,k1","green,none,none","green,none,none","green,none,none","green,none,none","green,none,none","green,none,none","black,blocked,wall","black,blocked,wall","black,blocked,wall","black,blocked,wall","black,blocked,wall","green,none,none","green,none,none","green,none,none","green,none,none","green,none,none","green,none,none","green,none,none","green,none,none","green,none,none","green,none,none","green,none,none","green,none,none","green,none,none","black,blocked,wall","black,blocked,wall","black,blocked,wall","black,blocked,wall","green,none,none","green,none,none","green,none,none","green,none,none","green,none,none","green,none,none","green,none,none","green,none,none","green,none,none","green,none,none","gray,door,d2","green,hidden,h2","green,hidden,h2","green,hidden,h2","green,none,none","green,none,none","green,none,none","green,none,none","green,none,none","green,none,none","green,none,none","green,none,none","green,none,none","green,none,none","black,blocked,wall","green,hidden,h2","green,hidden,h2","green,hidden,h2"]);
+      var goblin1 = Object.create(goblin);
+      goblin1.name = "Goblin1";
+      goblin1.locY = 4;
+      goblin1.locX = 10;
+      var goblin2 = Object.create(goblin);
+      goblin2.name = "Goblin2";
+      goblin2.locY = 6;
+      goblin2.locX = 4;
+      var firestoker3 = Object.create(fireStoker);
+      firestoker3.name = "FiresStoker3";
+      firestoker3.locY = 13;
+      firestoker3.locX = 10;
+      var demon1 = Object.create(demon);
+      demon1.name = "Demon";
+      demon1.hp = 10;
+      demon1.locY = 8;
+      demon1.locX = 8;
+      //document.getElementById('gameBoard').innerHTML = goblin2.name;
+      //Enter characters
+      var steve = new gameJS.character("Steve",1,2,10,"studdedleather","scimitar","none",6,"fighter.png",14,12,12,10,9,12,"fighter",1,"none","player");
+      var alex = new gameJS.character("Alex",1,1,0,"chainshirt","hammer","shield",6,"cleric.png",14,10,12,14,10,11,"cleric",5,"none","player");
+      var roger = new gameJS.character("Roger",1,1,0,"studdedleather","shortsword","dagger",6,"thief.png",10,16,10,10,12,12,"thief",5,"none","player");
+      roger.range = 20;
+      gameJS.characters = [firestoker3,goblin2,goblin1,demon1,roger];//need to add all characters here
+      gameJS.endState = "exit";//death is default, change if needed (exit, )
+      gameJS.addExit(14,14,"pink");
+      //gameJS.addItem(14,10,"key.png","key1",true);
+      gameJS.addItem(10,10,"key.png","key2",true);
+      gameJS.addItem(7,6,"spec1.png","spec1",true);
+      gameJS.addItem(10,9,"heal8.png","heal8",true);
+      gameJS.addWASD();
+      gameJS.startGame(gameJS.characters);
+      console.log(gameJS.characters);
+    </script>
+  </body>
+</html>
