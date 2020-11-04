@@ -1,6 +1,6 @@
-##Info for version 2
+# Info for version 2
 
-#What you can do:
+What you can do:
 
 Select from three classes (Fighter, Thief, Cleric) up to level 5
 
@@ -13,7 +13,7 @@ Auto create much of the game
 Limited two player (both have to live and only end state available is "exit")
 
 
-#Version 2 Resources:
+Version 2 Resources:
 
 Videos - http://sagefirellc.ninja/#vids
 
